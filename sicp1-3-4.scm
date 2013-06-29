@@ -11,6 +11,7 @@
   (define (close-enough? v1 v2)
     (< (abs (- v1 v2)) tolerance))
   (define (try guess)
+;    (display guess) (newline) ; debug
     (let ((next (f guess)))
       (if (close-enough? guess next)
           next
@@ -37,12 +38,13 @@
 
 
 ;;; average-dampを使ってsqrtを定義する
-(define (sqrt x)
+(define (sqrt-ad x)
   (fixed-point (average-damp (lambda (y) (/ x y)))
                1.0))
-(sqrt 2)
+(sqrt-ad 2)
 ;> 1.4142135623746899
 
+;;; average-dampをつかって三乗根を求める
 (define (cube-root x)
   (fixed-point (average-damp (lambda (y) (/ x (square y))))
                1.0))
@@ -51,9 +53,10 @@
 
 
 
+
 ;;;; Newton法
 
-;;; 微分の, limの下で極限0のやつを以下で近似
+;;; 微分の limの下で極限0のやつを以下で近似
 (define dx 0.00001)
 
 ;;; 1変数関数の手続きを 微分した手続きを 返す手続き
@@ -62,21 +65,27 @@
     (/ (- (g (+ x dx)) (g x))
        dx)))
 
-;;; x = x^3
+;;; f(x) = x^3
 (define (cube x) (* x x x))
 
+;; Df(x) = 3x^2
+;; Df(5) = 3*5^2 = 75
 ((deriv cube) 5)
 ;> 75.00014999664018
+;; OK!
+
+
 
 
 ;;;; Newton法を不動点プロセスとして表す
 
 ;;; 1変数手続きを受け取って、Newton法用の手続きに変換して返す
+;;; 最初の例でいえば g を受け取って f にして返す
 (define (newton-transform g)
   (lambda (x)
     (- x (/ (g x) ((deriv g) x)))))
 
-;;; Newton法で受け取った手続きの零点を探す
+;;; Newton法で手続きの零点を探す
 (define (newtons-method g guess)
   (fixed-point (newton-transform g) guess))
 
@@ -110,51 +119,59 @@
   (fixed-point (transform g) guess))
 
 ;;; 平均緩和法で平方根を出す手続きを上記で書きなおす
-(define (sqrt x)
+(define (sqrt-fpot-ad x)
   (fixed-point-of-transform (lambda (y) (/ x y))
                             average-damp
                             1.0))
-(sqrt 2)
+(sqrt-fpot-ad 2)
 ;> 1.4142135623746899
-;  1.4142135623730950488016887242096...
 
 
 ;;; Newton法で平方根を出す手続きを上記で書き直す
 ;; 渡す手続きが違うので注意！
-(define (sqrt x)
+(define (sqrt-fpot-nt x)
   (fixed-point-of-transform (lambda (y) (- (square y) x))
                             newton-transform
                             1.0))
 
-(sqrt 2)
+(sqrt-fpot-nt 2)
 ;> 1.4142135623822438
-;  1.4142135623730950488016887242096...
 
-;; 2の平方根
-;; http://apod.nasa.gov/htmltest/gifcity/sqrt2.1mil
-;  1.4142135623730950488016887242096...
-
+;; 精度比較
+;ad> 1.4142135623 746899
+;nt> 1.4142135623 822438
+;    1.4142135623 730950488016887242096...
 
 ; TODO なんかNewton法のほうが精度悪いんだけど。。。
 
 
+
+;; 抽象化についてのところを3行でまとめる
+;; ・プログラムを書く上で抽象化を心がけることは大事
+;; ・でも抽象化しすぎも良くない、ほどよい抽象化ができるように抽象化の方法は覚えておくべき
+;; ・高階手続きは、手続きをプログラム言語の要素として表せる抽象化だから便利で重要
 
 
 ;;;; Lispは手続きに第一級の身分を与えた
 
 ;; 第一級要素の「権利と特権」
 
-; ・変数として名前が付けられる
-;    -> define で手続きに名前が付けられる
+;; ・変数として名前が付けられる
+;;    -> define で手続きに名前が付けられる
 
-; ・手続きに引数として渡せる
-;    -> 渡せる。1.3.1〜3節で確認済み。
+;; ・手続きに引数として渡せる
+;;    -> 渡せる。1.3.1〜3節で確認済み。
 
-; ・手続きの結果として返される
-;     ->返せる。1.3.4節（今回）で確認済み。
+;; ・手続きの結果として返される
+;;     ->返せる。1.3.4節（今回）で確認済み。
 
-; ・データ構造に組み込める
-;     ->まだデータ構造が出てきてないから未確認？
+;; ・データ構造に組み込める
+;;     ->COMING SOON...
+;;       脚注65によると　2章でデータ構造を紹介した後に分かるらしい
+
+;; これらができるとプログラムでプログラムをいろいろ操作できるから大事っぽい
+
+
 
 
 
@@ -188,7 +205,9 @@
 ;; 検算
 ((cubic 4 2 1) -3.5115471416944994)
 ;> 3.561595462997502e-13
-; ほぼ 0
+;; ほぼ 0
+;; OK
+
 
 
 
@@ -208,13 +227,20 @@
 ;> 7
 
 
-;; 以下の手続きは何を返すか
+;; Q.以下の手続きは何を返すか
 (((double (double double)) inc) 5)
 
-;; TODO 式変形を丁寧にやろう
-
+;; 説明のため、n回作用させる関数をapply-Nと書いて表現する
+(((apply-2 (apply-2 apply-2)) inc) 5)
+(((apply-2 apply-4) inc) 5)
+;; (apply-4 (apply-4 ...
+;; 4回作用させるのを4回作用させてる
+;; 回数は4^2
+((apply-16 inc) 5)
+;; incを16回作用させてる
+;; 答えは5+16=21のはず
 ;> 21
-
+;; OK!
 
 
 
@@ -228,20 +254,18 @@
 ;; TEST
 ((compose square inc) 6)
 ;> 49
-
+((compose inc inc) 3)
+;> 5
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Q 1.43
 
 ;;; f をn回作用させる手続き
-(define (repeated f n)
-  (lambda (x)
-    (define (rec f x2 n)
-      (if (= n 0)
-          x2
-          (f (rec f x2 (- n 1)))))
-    (rec f x n)))
+(define (repeated-c f n)
+  (if (= n 1)
+      f
+      (compose f (repeated f (- n 1)))))
 
 ((repeated inc 2) 5)
 ;> 7
@@ -249,14 +273,31 @@
 ;> 16
 
 
+
+;;; 最初に書いたバージョン
+;; 手続きを値として扱うことに慣れてなかったせい？
+(define (repeated-first f n)
+  (lambda (x)
+    (define (rec f x2 n)
+      (if (= n 0)
+          x2
+          (f (rec f x2 (- n 1)))))
+    (rec f x n)))
+
+((repeated-first inc 2) 5)
+;> 7
+((repeated-first square 2) 2)
+;> 16
+
+
+;;; おまけ
 ;;; repeatedを反復的プロセスで書いてみた
 (define (repeated-iter f n)
-  (lambda (x)
-    (define (iter f n ans)
-      (if (= n 0)
-          ans
-          (iter f (- n 1) (f ans))))
-    (iter f n x)))
+  (define (iter f n ret)
+    (if (= n 1)
+        ret
+        (iter f (- n 1) (compose f ret))))
+    (iter f n f))
 
 ((repeated-iter inc 2) 5)
 ;> 7
@@ -264,17 +305,6 @@
 ;> 16
 
 
-(define (repeated-c f n)
-  (if (= n 1)
-      f
-      (compose f (repeated-c f (- n 1)))))
-((repeated-c inc 2) 5)
-;> 7
-((repeated-c square 2) 2)
-;> 16
-
-;; なかなか思いつかなかった。
-;; 手続きを値として扱うことに慣れてなかったせい？
 
 
 
@@ -285,7 +315,7 @@
 ;;; 手続きを受け取って平滑化した手続きを返す
 (define (smooth f)
   (lambda (x)
-    (/ (+ (f (- x dx)) ; dx は微分derivを定義するときにつかったもの
+    (/ (+ (f (- x dx)) ; dx は微分derivを定義するときにつかったものを流用
           (f x)
           (f (+ x dx)))
        3.0)))
@@ -305,12 +335,6 @@
 ; 　　傾きが少なくなっていく？
 ;     x軸に対して平行に近づいていく？
 
-;(define (n-fold-smoothed f n)
-;  (if (= n 0)
-;      f
-;      (compose smooth
-;               (n-fold-smoothed f (- n 1)))))
-; TODO 間違えちゃったテヘ
 
 (define (n-fold-smoothed f n)
   ((repeated smooth n) f)) ; (smooth (smooth .. f) .. )
@@ -325,7 +349,6 @@
 ;> 4.000000000666667
 ;((n-fold-smoothed square 20) 2)
 ;; 返ってこないぞ。。。
-;; TODO 再帰的だから？　反復法書けばOK？
 
 (sin 1.0)
 ;> 0.841470984 8078965
@@ -341,16 +364,7 @@
 ; sys    0.000
 
 
-;; まずはrepeated-iterを書くか。。。
-(define (repeated-iter f n)
-  (define (iter f n result)
-    (if (= n 0)
-        result
-        (iter f (- n 1) (compose f result))))
-  (iter f n (lambda (x) x))) ; identityを初期値にする
-
-(define (n-fold-smoothed-iter f n)
-  ((repeated-iter smooth n) f))
+;; いろいろ試した
 
 ;(time ((n-fold-smoothed square 15) 2))
 ; real   2.120
@@ -369,13 +383,19 @@
 ; sys    1.420
 4.000000001333333
 
-;; 糞重くなる説明もせねば。。。
-;; 3^nに手続きが増えるのかな-
+
+;; 糞重くなる説明
+;; 平滑化1回でf を3回計算している
+;; それをさらに平滑化するとｆを9回計算することになる
+;; ｎ重平滑化はfを3^n回計算する
+
+;; 3^nに手続きが増える
 ;; 3^10 =      59049
 ;; 3^15 =   14348907
 ;; 3^20 = 3486784401
-;; n-fold-smoothedは、3^nのオーダー？
+;; n-fold-smoothedのオーダーは、O(3^n)
 
+;; 実行時間で検証
 ;; n=15, time=2.120
 ;; n=16, time=6.339
 ;;  約3倍増えている
@@ -396,7 +416,8 @@
 
 ;; TODO なぜ4乗根の計算に単一の平均緩和法が使えないのか？
 
-;;; 再帰の上限を指定できるように改造した
+
+;;; 安全に計算の動きをおうため、計算回数の上限を指定できるように改造した
 (define (fixed-point-limited f first-guess limit)
   (define (close-enough? v1 v2)
     (< (abs (- v1 v2)) tolerance))
@@ -409,6 +430,7 @@
           (try next (+ count 1)))))
   (try first-guess 1))
 
+;;; 平均緩和法1回での4乗根計算手続き
 (define (root4-ad1 x limit)
   (fixed-point-limited
     (average-damp (lambda (y) (/ x
@@ -432,7 +454,7 @@
 
 
 ;; 4乗根を求める場合、「単一の平均緩和法は（中略）収束するのに十分ではない」
-;; とあるけど、収束自体はするのでは？　ただし超遅くなる
+;; とあるけど、収束自体はする。　ただし超遅くなる
 
 ;; 不動点を求めるときの関数グラフはできるだけx軸に平行なほうがよい
 ;; 傾きが0に近く、緩やかに増加していくグラフだとよいはず
@@ -448,12 +470,16 @@
 ;; 地道にグラフ書いた結果から発見的に答え出すかと思ったがそれも面倒くさい
 
 
+;;;; 問題文にあるようにいろいろ実験してみる
+
+
 ;;; 不動点探索が螺旋状になってないかチェックする
 ;;; 増加ｏｒ減少が続いたらOK
 ;;; 増加と減少が交互にきたらNG
 (define (fixed-point-check f first-guess)
   (define (close-enough? v1 v2)
     (< (abs (- v1 v2)) tolerance))
+  ;; 値の増減を返す
   (define (value-sign v1 v2)
     (cond ((< v1 v2) 1)
           ((> v1 v2) -1)
@@ -482,21 +508,24 @@
     (try guess2 (value-sign guess1 guess2))))
 
 ;; 4乗根の計算で実験する
+;; 平均緩和法1回の場合
 (fixed-point-check
  (average-damp
+  (lambda (y) (/ 2.0 (* y y y))))
+ 1.0)
+;; 平均緩和法2回の場合
+(fixed-point-check
  (average-damp
-  (lambda (y) (/ 2.0 (* y y y)))
-  )
- )
- 1.0
-)
+  (average-damp
+   (lambda (y) (/ 2.0 (* y y y)))))
+ 1.0)
 
 
 ;;; 平均緩和法をｍ回適用してｎ乗根を見つける手続き
 ;;; 平均緩和法の適用回数を特定するための実験版
 (define (root-n-test x n m)
   (fixed-point-check
-   ((repeated-c average-damp m)
+   ((repeated average-damp m)
     (lambda (y)
       (/ x
          (expt y (- n 1))))) ; exptはべき乗関数
@@ -545,6 +574,7 @@
 (root-n-test 2.0 20 5) ; OK!
 
 ;; もしかしてｎ乗根の平均緩和法適用回数はｎの平方根なんでは？
+;; ー＞ダメでした
 
 ;; 100乗根
 (root-n-test 2.0 100 6) ; NG
@@ -552,8 +582,6 @@
 (root-n-test 2.0 100 8) ; ok!
 (root-n-test 2.0 100 9) ; ok!
 
-
-;; ???? 違うっぽい
 ;; 1000乗根
 (root-n-test 2.0 1000  6) ; NG
 (root-n-test 2.0 1000  7) ; NG
@@ -562,20 +590,18 @@
 (root-n-test 2.0 1000 10) ; ok!
 
 
+;; カンニングした結果と実験結果をもとにすると平均緩和法の回数はこうなる
 (ceiling (/ (log 1000) (log 2)))
 
 
 ;;; ｎ乗根を探す手続き
 (define (root-n x n)
   (fixed-point
-   ;; 最小の適用回数に規則性を見つけられなかったので、ｎで妥協。
-   ;; 実際はもっと小さい値になるはず
- ;  ((repeated-c average-damp n)
-   ((repeated-c average-damp
-                ;; 2を底とするlog nの小数点以下切上げ
+   ((repeated average-damp
+                ;; 回数：2を底とするlog nの小数点以下切上げ
                 (ceiling (/ (log n) (log 2))))
     (lambda (y) (/ x
-                   (expt y (- n 1)))))
+                   (expt y (- n 1))))) ; exptはべき乗
    1.0))
 
 ;; test
@@ -595,11 +621,11 @@
 ;;;; 反復改良法を一般化する
 
 ;;; 予測値の良好さチェック手続きと、予測値改良手続きを受け取り、予測値を改良する手続きを返す
-(define (iterative-improve close-enough? improve)
+(define (iterative-improve good-enough? improve)
   (lambda (first-guess)
     (define (iter guess)
       (let ((next (improve guess)))
-        (if (close-enough? guess next)
+        (if (good-enough? guess next)
             next
             (iter next))))
     (iter first-guess)))
@@ -607,8 +633,7 @@
 ;;; 1.1.7節のsqrtをiterative-improveをつかって書き直す
 (define (sqrt-ii x)
   ((iterative-improve
-    (lambda (v1 v2)
-      (< (abs (- v1 v2)) tolerance))
+    (lambda (v1 v2) (< (abs (- v1 v2)) tolerance)) ; fixed-pointで使ってるやつ
     (lambda (v)
       (average v (/ x v))))
    1.0))
@@ -641,4 +666,8 @@
 ;> 0.7390547907469174
 ;; OK
 
+
+
+;;;; 第1章 終了！
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
