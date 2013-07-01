@@ -231,14 +231,16 @@
 (((double (double double)) inc) 5)
 
 ;; 説明のため、n回作用させる関数をapply-Nと書いて表現する
-(((apply-2 (apply-2 apply-2)) inc) 5)
-(((apply-2 apply-4) inc) 5)
+;(((apply-2 (apply-2 apply-2)) inc) 5)
+;(((apply-2 apply-4) inc) 5)
 ;; (apply-4 (apply-4 ...
 ;; 4回作用させるのを4回作用させてる
 ;; 回数は4^2
-((apply-16 inc) 5)
+;((apply-16 inc) 5)
 ;; incを16回作用させてる
 ;; 答えは5+16=21のはず
+
+(((double (double double)) inc) 5)
 ;> 21
 ;; OK!
 
