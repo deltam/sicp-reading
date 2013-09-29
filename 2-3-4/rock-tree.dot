@@ -1,0 +1,49 @@
+// sicp ex2.70 
+
+
+digraph huffmanTree {
+NNAYIPAWAHBOOMSHAJOBGET [label="(NA YIP A WAH BOOM SHA JOB GET)
+weight:36"];
+NNA [label="(NA)
+weight:16"];
+NNAYIPAWAHBOOMSHAJOBGET -> NNA[label="0"];
+NYIPAWAHBOOMSHAJOBGET [label="(YIP A WAH BOOM SHA JOB GET)
+weight:20"];
+NNAYIPAWAHBOOMSHAJOBGET -> NYIPAWAHBOOMSHAJOBGET[label="1"];
+NYIP [label="(YIP)
+weight:9"];
+NYIPAWAHBOOMSHAJOBGET -> NYIP[label="0"];
+NAWAHBOOMSHAJOBGET [label="(A WAH BOOM SHA JOB GET)
+weight:11"];
+NYIPAWAHBOOMSHAJOBGET -> NAWAHBOOMSHAJOBGET[label="1"];
+NAWAHBOOM [label="(A WAH BOOM)
+weight:4"];
+NAWAHBOOMSHAJOBGET -> NAWAHBOOM[label="0"];
+NA [label="(A)
+weight:2"];
+NAWAHBOOM -> NA[label="0"];
+NWAHBOOM [label="(WAH BOOM)
+weight:2"];
+NAWAHBOOM -> NWAHBOOM[label="1"];
+NWAH [label="(WAH)
+weight:1"];
+NWAHBOOM -> NWAH[label="0"];
+NBOOM [label="(BOOM)
+weight:1"];
+NWAHBOOM -> NBOOM[label="1"];
+NSHAJOBGET [label="(SHA JOB GET)
+weight:7"];
+NAWAHBOOMSHAJOBGET -> NSHAJOBGET[label="1"];
+NSHA [label="(SHA)
+weight:3"];
+NSHAJOBGET -> NSHA[label="0"];
+NJOBGET [label="(JOB GET)
+weight:4"];
+NSHAJOBGET -> NJOBGET[label="1"];
+NJOB [label="(JOB)
+weight:2"];
+NJOBGET -> NJOB[label="0"];
+NGET [label="(GET)
+weight:2"];
+NJOBGET -> NGET[label="1"];
+}

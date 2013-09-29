@@ -1,0 +1,24 @@
+// sicp ex2.67 sample-tree
+
+digraph huffmanTree {
+NABDC [label="(A B D C)
+weight:8"];
+NA [label="(A)
+weight:4"];
+NABDC -> NA[label="0"];
+NBDC [label="(B D C)
+weight:4"];
+NABDC -> NBDC[label="1"];
+NB [label="(B)
+weight:2"];
+NBDC -> NB[label="0"];
+NDC [label="(D C)
+weight:2"];
+NBDC -> NDC[label="1"];
+ND [label="(D)
+weight:1"];
+NDC -> ND[label="0"];
+NC [label="(C)
+weight:1"];
+NDC -> NC[label="1"];
+}

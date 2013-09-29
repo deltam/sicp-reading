@@ -1,0 +1,30 @@
+// SICP ex2.71 n=5
+
+digraph huffmanTree {
+Nabcde [label="(a b c d e)
+weight:31"];
+Nabcd [label="(a b c d)
+weight:15"];
+Nabcde -> Nabcd[label="0"];
+Nabc [label="(a b c)
+weight:7"];
+Nabcd -> Nabc[label="0"];
+Nab [label="(a b)
+weight:3"];
+Nabc -> Nab[label="0"];
+Na [label="(a)
+weight:1"];
+Nab -> Na[label="0"];
+Nb [label="(b)
+weight:2"];
+Nab -> Nb[label="1"];
+Nc [label="(c)
+weight:4"];
+Nabc -> Nc[label="1"];
+Nd [label="(d)
+weight:8"];
+Nabcd -> Nd[label="1"];
+Ne [label="(e)
+weight:16"];
+Nabcde -> Ne[label="1"];
+}

@@ -1,0 +1,60 @@
+// SICP ex2.71 n=10
+
+digraph huffmanTree {
+Nabcdefghij [label="(a b c d e f g h i j)
+weight:1023"];
+Nabcdefghi [label="(a b c d e f g h i)
+weight:511"];
+Nabcdefghij -> Nabcdefghi[label="0"];
+Nabcdefgh [label="(a b c d e f g h)
+weight:255"];
+Nabcdefghi -> Nabcdefgh[label="0"];
+Nabcdefg [label="(a b c d e f g)
+weight:127"];
+Nabcdefgh -> Nabcdefg[label="0"];
+Nabcdef [label="(a b c d e f)
+weight:63"];
+Nabcdefg -> Nabcdef[label="0"];
+Nabcde [label="(a b c d e)
+weight:31"];
+Nabcdef -> Nabcde[label="0"];
+Nabcd [label="(a b c d)
+weight:15"];
+Nabcde -> Nabcd[label="0"];
+Nabc [label="(a b c)
+weight:7"];
+Nabcd -> Nabc[label="0"];
+Nab [label="(a b)
+weight:3"];
+Nabc -> Nab[label="0"];
+Na [label="(a)
+weight:1"];
+Nab -> Na[label="0"];
+Nb [label="(b)
+weight:2"];
+Nab -> Nb[label="1"];
+Nc [label="(c)
+weight:4"];
+Nabc -> Nc[label="1"];
+Nd [label="(d)
+weight:8"];
+Nabcd -> Nd[label="1"];
+Ne [label="(e)
+weight:16"];
+Nabcde -> Ne[label="1"];
+Nf [label="(f)
+weight:32"];
+Nabcdef -> Nf[label="1"];
+Ng [label="(g)
+weight:64"];
+Nabcdefg -> Ng[label="1"];
+Nh [label="(h)
+weight:128"];
+Nabcdefgh -> Nh[label="1"];
+Ni [label="(i)
+weight:256"];
+Nabcdefghi -> Ni[label="1"];
+Nj [label="(j)
+weight:512"];
+Nabcdefghij -> Nj[label="1"];
+}
