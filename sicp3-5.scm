@@ -801,3 +801,43 @@
 
 
 
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; 便利手続きを作った
+;;; stream-take, stream-list
+
+;;; 遅延ストリームの先頭n個を取る
+(define (stream-take s n)
+  (if (< n 1)
+      '()
+      (cons (stream-car s)
+            (stream-take (stream-cdr s)
+                         (- n 1)))))
+
+(stream-take integers 6)
+;> (1 2 3 4 5 6)
+(stream-take (partial-sums integers) 5)
+;> (1 3 6 10 15)
+
+
+
+;;; listのストリーム版
+(define (stream-list . items)
+  (if (null? items)
+      the-empty-stream
+      (cons-stream (car items)
+                   (apply stream-list (cdr items)))))
+(stream-list 1 2 3 4)
+;> (1 . #<closure (memo-proc memo-proc)>)
+
+(display-stream (stream-list 1 2))
+; 1
+; 2
+; done
+
+(stream-take (stream-list 1 2 3 4) 2)
+;> (1 2)
+
+
