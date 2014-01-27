@@ -176,7 +176,7 @@
   (display x)
   (newline))
 
-(display-stream (cons-stream 1 '(2)))
+(display-stream (cons-stream 1 (cons-stream 2 the-empty-stream)))
 ; 1
 ; 2
 ; done
@@ -347,10 +347,11 @@
        (apply stream-map
               (cons proc (map stream-cdr argstreams))))))
 
-(display-stream (stream-map + '(1 2 3) '(10 20 30) '(100 200 300)))
-; 111
-; 222
-; 333
+(display-stream
+ (stream-map + (cons-stream 1 (cons-stream 2 '()))
+               (cons-stream 10 (cons-stream 20 '()))))
+; 11
+; 22
 ; done
 
 
@@ -358,11 +359,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; ex3.51
 (define (show x)
-  (display-line x)
+  (display "> ") (display-line x)
   x)
 
 
 (define x (stream-map show (stream-enumerate-interval 0 10)))
+; 0
 ;> x
 
 (stream-ref x 5)
@@ -479,6 +481,7 @@
 ;  (syntax-rules ()
 ;    ((delay a)
 ;     (lambda() a))))
+;; いったんインタプリタを落として、上のdelayをコメントアウトして評価しなおしたほうが良いらしい
 
 ;--
 (define sum 0)
@@ -634,7 +637,8 @@
 (stream-ref primes 3) ;> 7
 (stream-ref primes 4) ;> 11
 
-
+(stream-ref primes 50)
+;> 233
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -649,7 +653,7 @@
 (define (add-streams s1 s2)
   (stream-map + s1 s2))
 
-(add-streams '(1 2) '(10 20))
+;(display-stream (add-streams '(1 2) '(10 20)))
 
 ;; integersを次のように定義出来る
 (define integers (cons-stream 1 (add-streams ones integers)))
@@ -662,10 +666,11 @@
 
 
 ;; このスタイルでフィボナッチ数も定義できる
-(define fibs (cons-stream 0
-                          (cons-stream 1
-                                       (add-streams (stream-cdr fibs)
-                                                    fibs))))
+(define fibs
+  (cons-stream 0
+               (cons-stream 1
+                            (add-streams (stream-cdr fibs)
+                                         fibs))))
 (stream-ref fibs 0) ;> 0
 (stream-ref fibs 1) ;> 1
 (stream-ref fibs 2) ;> 1
@@ -723,7 +728,7 @@
 ; s1:   1 2 4 ... n
 ; s2:   1 2 4 ... n
 ;-------------------------------
-; s:  1 2 4 8 ... 2*n
+; s:  1 2 4 8 ... 2^n
 
 ; (1 2 4 8 ...
 ; 2のべき乗のストリーム
@@ -759,8 +764,9 @@
 ; これとintegersストリームを使い, (0から数えて)n番目の要素がn + 1の階乗になる次のストリームの定義を完成せよ
 
 
-(define factorials (cons-stream 1 (mul-streams (stream-cdr integers)
-                                               factorials)))
+(define factorials
+  (cons-stream 1 (mul-streams integers
+                              factorials)))
 ; (stream-cdr integers)  : 2   3   4   5   6 ...
 ; factorials             : 1   2   6  24 120 ...
 ;------------------------------------------------
@@ -781,7 +787,7 @@
 ;引数としてストリームSをとり, その要素がS0, S0 + S1, S0 + S1 + S2, ... であるようなストリームを返す手続き partial-sumsを定義せよ. 例えば(partial-sums integers) はストリーム1, 3, 6, 10, 15, ... を返すものとする.
 
 (define (partial-sums s)
-  (define sum (cons-stream (stream-car s)
+  (define sum (cons-stream (stream-car s)   ;s0
                            (add-streams (stream-cdr s)
                                         sum)))
   sum)
