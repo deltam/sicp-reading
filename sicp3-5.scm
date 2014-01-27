@@ -189,6 +189,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 構成子、選択子の実装
 
+;; ボツ
 ;(define (cons-stream a b)
 ;  (cons a (delay b)))
 
@@ -221,9 +222,6 @@
 
 
 ; SICPの実装
-; (define (stream-cdr stream)
-;   (force (cdr stream)))
-
 (define (stream-cdr stream)
   (force (cdr stream)))
 
@@ -470,60 +468,78 @@
 ; 210
 ; done
 
-; yのstream-refでメモ化されているものは印字されない
+;; yのstream-refでメモ化されているものは印字されない
+;; (stream-ref y), (display-stream z)の評価順番を変えても値にかわりなし
 
 
-;; メモ化なしのcons-stream
-;(define-syntax cons-stream
+
+
+; メモ化なしのdelay
+;(define-syntax delay
 ;  (syntax-rules ()
-;    ((cons-stream a b)
-;     (cons a (lambda() b)))))
+;    ((delay a)
+;     (lambda() a))))
 
 ;--
 (define sum 0)
 
 (define seq (stream-map accum (stream-enumerate-interval 1 20)))
+; 結果  sum = 1
 ; sum += 1 : 1
-; もう一度評価する
-; sum += 1 : 2
-
 
 (define y (stream-filter even? seq))
+; 結果 sum = 6
 ; sum += 2 : 3
 ; sum += 3 : 6
 
 (define z (stream-filter (lambda (x) (= (remainder x 5) 0))
                          seq))
-; sum += 4 : 10
+; 結果  sum = 15
+; sum += 2 : 8
+; sum += 3 : 11
+; sum += 4 : 15
+
 
 (stream-ref y 7)
-; sum += 5 : 15
-; sum += 6 : 21
-; sum += 7 : 28
-; sum += 8 : 36
-; sum += 9 : 45
-; sum += 10 : 55
-; sum += 11 : 66
-; sum += 12 : 78
-; sum += 13 : 91
-; sum += 14 : 105
-; sum += 15 : 120
-; sum += 16 : 136
-;>136
+; 結果  sum = 162
+; sum += 4 : 19
+; sum += 5 : 24
+; sum += 6 : 30
+; sum += 7 : 37
+; sum += 8 : 45
+; sum += 9 : 54
+; sum += 10 : 64
+; sum += 11 : 75
+; sum += 12 : 87
+; sum += 13 : 100
+; sum += 14 : 114
+; sum += 15 : 129
+; sum += 16 : 145
+; sum += 17 : 162
+
 
 (display-stream z)
-; 10
+; 結果  sum = 362
 ; 15
-; 45
-; 55
-; 105
-; 120
-; sum += 17 : 153
-; sum += 18 : 171
-; sum += 19 : 190
-; 190
-; sum += 20 : 210
-; 210
+; sum += 5 : 167
+; sum += 6 : 173
+; sum += 7 : 180
+; 180
+; sum += 8 : 188
+; sum += 9 : 197
+; sum += 10 : 207
+; sum += 11 : 218
+; sum += 12 : 230
+; 230
+; sum += 13 : 243
+; sum += 14 : 257
+; sum += 15 : 272
+; sum += 16 : 288
+; sum += 17 : 305
+; 305
+; sum += 18 : 323
+; sum += 19 : 342
+; sum += 20 : 362
 ; done
 
 
@@ -710,7 +726,7 @@
 ; s:  1 2 4 8 ... 2*n
 
 ; (1 2 4 8 ...
-; 二乗のストリーム
+; 2のべき乗のストリーム
 
 ; 確認
 (stream-ref s 0) ;> 1
