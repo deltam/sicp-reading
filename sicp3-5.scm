@@ -810,7 +810,7 @@
 
 ;;; 遅延ストリームの先頭n個を取る
 (define (stream-take s n)
-  (if (< n 1)
+  (if (or (stream-null? s) (< n 1))
       '()
       (cons (stream-car s)
             (stream-take (stream-cdr s)
